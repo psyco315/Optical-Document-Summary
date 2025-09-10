@@ -2,7 +2,7 @@ import React from 'react';
 import { ExternalLink } from 'lucide-react';
 
 const FileInfo = ({ fileName, fileType, onViewFile }) => (
-  <div className="bg-gray-500 text-white pt-2 pl-3 flex items-center gap-4 text-sm">
+  <div className="text-white pt-2 pl-3 flex items-center gap-4 text-sm">
     <span>File Name: {fileName}</span>
     <span>File Type: {fileType}</span>
     <button 
