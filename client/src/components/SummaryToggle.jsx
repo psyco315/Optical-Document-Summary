@@ -6,10 +6,10 @@ const SummaryToggle = ({ length, onChange }) => (
       <button
         key={option}
         onClick={() => onChange(option)}
-        className={`px-4 py-1 text-sm ${
+        className={`px-4 py-1 text-sm  hover:cursor-pointer ${
           length === option 
             ? 'bg-green-600 text-white' 
-            : 'bg-gray-400 hover:bg-gray-350'
+            : 'bg-gray-400 hover:bg-gray-700 hover:text-white'
         }`}
       >
         {option}

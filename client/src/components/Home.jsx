@@ -69,7 +69,7 @@ const Home = () => {
 
     if (supportedFiles.length > 0) {
       handleFilesSelected(supportedFiles);
-      onClose();
+      handleCloseUploadModal();
     } else {
       alert('Please select image files (PNG, JPG, GIF) or PDF documents.');
     }
@@ -204,11 +204,11 @@ const Home = () => {
       if (response.ok && data.text) {
         setExtractedText(data.text);
       } else {
-        setExtractionError(data.error || 'OCR extraction failed');
+        setExtractionError(data.error || 'Failed to fetch data for this file');
       }
     } catch (error) {
       console.error('OCR extraction error:', error);
-      setExtractionError('OCR extraction failed');
+      setExtractionError('Failed to fetch data for this file');
     }
   };
 
@@ -235,7 +235,7 @@ const Home = () => {
       });
 
       const data = await response.json();
-      console.log(data)
+      // console.log(data)
 
       if (response.ok && data.data) {
         setSummary(data.data.summary);
@@ -418,7 +418,7 @@ const Home = () => {
               <button
                 onClick={handleExtractText}
                 disabled={isExtracting || !currentFile}
-                className='bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed px-6 py-2 rounded text-white font-medium transition-colors'
+                className='bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed px-6 py-2 rounded text-white font-medium transition-colors hover:cursor-pointer'
               >
                 {isExtracting ? (
                   <div className="flex items-center gap-2">

@@ -60,56 +60,56 @@ const FileUploadModal = ({ isOpen, onClose, onFileSelect }) => {
     return (
         <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50">
             <WarpBackground gridColor='rgba(255, 255, 255, 0.20)' height={100}>
-                <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="backdrop-blur-xl bg-black/20 border border-white/30 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
                     {/* Modal Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-800">Upload Files</h2>
+                    <div className="flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-white/10 to-transparent">
+                        <h2 className="text-xl font-bold text-white drop-shadow-lg">Upload Files</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 p-1"
+                            className="text-white/80 hover:text-white p-2 rounded-full backdrop-blur-sm bg-white/10 border border-white/20 transition-all duration-300 hover:scale-110 hover:bg-white/20"
                         >
                             <X size={20} />
                         </button>
                     </div>
 
                     {/* Modal Content */}
-                    <div className="p-6">
+                    <div className="p-6 backdrop-blur-sm bg-white/5">
                         {/* Drag and Drop Area */}
                         <div
                             onDragEnter={handleDragEnter}
                             onDragLeave={handleDragLeave}
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
-                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragOver
-                                ? 'border-green-500 bg-green-50'
-                                : 'border-gray-300 bg-gray-50'
+                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 backdrop-blur-md ${isDragOver
+                                ? 'border-green-400/60 bg-green-500/20 shadow-lg shadow-green-500/20'
+                                : 'border-white/40 bg-white/10 hover:bg-white/15'
                                 }`}
                         >
                             <div className="flex flex-col items-center">
-                                <Upload size={48} className={`mb-4 ${isDragOver ? 'text-green-500' : 'text-gray-400'
+                                <Upload size={56} className={`mb-4 transition-all duration-300 ${isDragOver ? 'text-green-400 scale-110' : 'text-white/80'
                                     }`} />
 
-                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                <h3 className="text-lg font-semibold text-white mb-2 drop-shadow-md">
                                     {isDragOver ? 'Drop files here' : 'Drag and drop files here'}
                                 </h3>
 
-                                <p className="text-sm text-gray-500 mb-4">
+                                <p className="text-sm text-white/70 mb-4 drop-shadow-sm">
                                     Supported formats: PDF, PNG, JPG, JPEG, WEBP
                                 </p>
 
                                 <div className="flex items-center gap-4 w-full">
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                    <span className="text-sm text-gray-500">OR</span>
-                                    <div className="flex-1 h-px bg-gray-300"></div>
+                                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                                    <span className="text-sm text-white/60 px-2 bg-white/10 rounded-full backdrop-blur-sm">OR</span>
+                                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Browse Button */}
-                        <div className="mt-4">
+                        <div className="mt-6">
                             <button
                                 onClick={handleBrowseClick}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors hover:cursor-pointer"
+                                className="w-full bg-gradient-to-r from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] hover:cursor-pointer"
                             >
                                 <FolderOpen size={20} />
                                 Browse Files
@@ -127,18 +127,27 @@ const FileUploadModal = ({ isOpen, onClose, onFileSelect }) => {
                         />
 
                         {/* Help Text */}
-                        <div className="mt-4 text-xs text-gray-500">
-                            <p>• You can select multiple files at once</p>
-                            <p>• Maximum file size: 10MB per file</p>
-                            <p>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</p>
+                        <div className="mt-6 text-xs text-white/60 space-y-1 bg-white/5 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+                            <p className="flex items-center gap-2">
+                                <span className="w-1 h-1 bg-white/40 rounded-full"></span>
+                                You can select multiple files at once
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1 h-1 bg-white/40 rounded-full"></span>
+                                Maximum file size: 10MB per file
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="w-1 h-1 bg-white/40 rounded-full"></span>
+                                Supported formats: PDF, PNG, JPG, JPEG, WEBP
+                            </p>
                         </div>
                     </div>
 
                     {/* Modal Footer */}
-                    <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                    <div className="px-6 py-4 border-t border-white/20 flex justify-end bg-gradient-to-t from-white/5 to-transparent">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                            className="px-6 py-2 text-white/80 hover:text-white font-semibold rounded-lg backdrop-blur-sm bg-white/10 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105"
                         >
                             Cancel
                         </button>
