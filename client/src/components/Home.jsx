@@ -1,0 +1,468 @@
+import React, { useState, useRef } from 'react';
+
+// Import all components
+import Header from './Header';
+import FileTab from './FileTab';
+import FileUpload from './FileUpload';
+import FileUploadModal from './FileUploadModal';
+import FileInfo from './FileInfo';
+import SummaryToggle from './SummaryToggle';
+import SummarizeButton from './SummarizeButton';
+import ContentPanel from './ContentPanel';
+
+import { Upload, X, FolderOpen } from 'lucide-react';
+
+const Home = () => {
+  const [activeTab, setActiveTab] = useState('img1');
+  const [summaryLength, setSummaryLength] = useState('Medium');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [extractedText, setExtractedText] = useState('');
+  const [summary, setSummary] = useState('');
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState('');
+  // Add missing state variables
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    handleFiles(files);
+  };
+
+  const handleFileInput = (e) => {
+    const files = Array.from(e.target.files);
+    handleFiles(files);
+  };
+
+  const handleFiles = (files) => {
+    // Filter for supported file types (images and PDFs)
+    const supportedFiles = files.filter(file =>
+      file.type.startsWith('image/') || file.type === 'application/pdf'
+    );
+
+    if (supportedFiles.length > 0) {
+      handleFilesSelected(supportedFiles);
+      onClose();
+    } else {
+      alert('Please select image files (PNG, JPG, GIF) or PDF documents.');
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileClose = (fileId) => {
+    setFiles(files.filter(file => file.id !== fileId));
+    if (activeTab === fileId && files.length > 1) {
+      const remainingFiles = files.filter(file => file.id !== fileId);
+      setActiveTab(remainingFiles[0]?.id || '');
+    }
+  };
+
+  const handleOpenUploadModal = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setIsUploadModalOpen(false);
+  };
+
+  const handleFilesSelected = (selectedFiles) => {
+    // Convert File objects to our file format
+    const newFiles = selectedFiles.map((file, index) => {
+      const fileType = file.type.startsWith('image/') ? 'Image' : 'PDF';
+      return {
+        id: `file_${Date.now()}_${index}`,
+        name: file.name.split('.')[0], // Remove extension for display
+        type: fileType,
+        originalFile: file // Store the original file for future processing
+      };
+    });
+
+    setFiles(prevFiles => [...prevFiles, ...newFiles]);
+
+    // Set the first new file as active if no files were previously active
+    if (newFiles.length > 0) {
+      setActiveTab(newFiles[0].id);
+    }
+  };
+
+  const handleExtractText = async () => {
+    const currentFile = files.find(file => file.id === activeTab);
+
+    if (!currentFile?.originalFile) {
+      setExtractionError('This is a sample file. Please upload a real file to extract text.');
+      setExtractedText('');
+      return;
+    }
+
+    setIsExtracting(true);
+    setExtractionError('');
+    setExtractedText('');
+
+    try {
+      if (currentFile.type === 'Image') {
+        // For images, send directly to OCR endpoint with 'pdf' key
+        await extractWithOCR(currentFile.originalFile);
+      } else if (currentFile.type === 'PDF') {
+        // For PDFs, try PDF extraction first
+        const pdfSuccess = await extractWithPDF(currentFile.originalFile);
+
+        // If PDF extraction fails or returns no text, fall back to OCR
+        if (!pdfSuccess) {
+          await extractWithOCR(currentFile.originalFile);
+        }
+      }
+    } catch (error) {
+      console.error('Text extraction error:', error);
+      setExtractionError('Failed to extract text from file');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  // Get backend URL - use environment variable if available, otherwise default to localhost:3000
+  const getBackendUrl = () => {
+    // Check if we're in development (localhost) or production
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Try to get environment variable, fallback based on environment
+    const envBackendUrl = typeof process !== 'undefined' && process.env ? process.env.REACT_APP_BACKEND_URL : null;
+
+    if (envBackendUrl) {
+      return envBackendUrl;
+    }
+
+    return isDevelopment ? 'http://localhost:3000' : window.location.origin;
+  };
+
+  const extractWithPDF = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file); // Change to 'pdf' to match your multer config
+
+      const response = await fetch(`${getBackendUrl()}/api/pdf/extract`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.text && data.text.trim()) {
+        setExtractedText(data.text);
+        return true; // Success
+      } else {
+        console.log('PDF extraction returned no text or failed');
+        return false; // No text or failed
+      }
+    } catch (error) {
+      console.error('PDF extraction error:', error);
+      return false; // Failed
+    }
+  };
+
+  const extractWithOCR = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file); // Using 'pdf' key as specified
+
+      const response = await fetch(`${getBackendUrl()}/api/ocr/extract`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.text) {
+        setExtractedText(data.text);
+      } else {
+        setExtractionError(data.error || 'OCR extraction failed');
+      }
+    } catch (error) {
+      console.error('OCR extraction error:', error);
+      setExtractionError('OCR extraction failed');
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!extractedText.trim()) {
+      setSummaryError('Please extract text first before summarizing.');
+      return;
+    }
+
+    setIsSummarizing(true);
+    setSummaryError('');
+    setSummary('');
+
+    try {
+      const response = await fetch(`${getBackendUrl()}/api/summary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: extractedText,
+          summaryType: summaryLength.toLowerCase()
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data)
+
+      if (response.ok && data.data) {
+        setSummary(data.data.summary);
+      } else {
+        setSummaryError(data.error || 'Failed to generate summary');
+      }
+    } catch (error) {
+      console.error('Summarization error:', error);
+      setSummaryError('Failed to generate summary');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  const handleViewFile = () => {
+    const currentFile = files.find(file => file.id === activeTab);
+    if (!currentFile?.originalFile) {
+      // Handle case where it's a default file (no originalFile)
+      alert('This is a sample file. Please upload a real file to view it.');
+      return;
+    }
+
+    // Create object URL for the file
+    const fileURL = URL.createObjectURL(currentFile.originalFile);
+
+    // Open in new tab
+    const newTab = window.open(fileURL, '_blank');
+
+    // Clean up the object URL after a delay to free memory
+    setTimeout(() => {
+      URL.revokeObjectURL(fileURL);
+    }, 1000);
+
+    // Handle case where popup was blocked
+    if (!newTab) {
+      alert('Popup blocked! Please allow popups for this site to view files.');
+    }
+  };
+
+  const currentFile = files.find(file => file.id === activeTab);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-100 hover:cursor-default">
+      <Header author="Parth Sarathi Yadav" />
+
+      {/* File Tabs */}
+      {
+        files.length !== 0 && (<div className="bg-gray-600 flex items-center">
+          {files.map((file) => (
+            <FileTab
+              key={file.id}
+              fileName={file.name}
+              isActive={activeTab === file.id}
+              onClick={() => setActiveTab(file.id)}
+              onClose={() => handleFileClose(file.id)}
+              showClose={files.length > 1}
+            />
+          ))}
+          <FileUpload onFileSelect={handleOpenUploadModal} />
+        </div>)
+      }
+
+      {/* File Info Bar */}
+      {currentFile && (
+        <FileInfo
+          fileName={currentFile.name}
+          fileType={currentFile.type}
+          onViewFile={handleViewFile}
+        />
+      )}
+
+      {/* Content Panels */}
+      {files.length === 0 ?
+        <div className=" bg-gray-500  flex-1 inset-0 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800">Upload Files</h2>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Drag and Drop Area */}
+              <div
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragOver
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-300 bg-gray-50'
+                  }`}
+              >
+                <div className="flex flex-col items-center">
+                  <Upload size={48} className={`mb-4 ${isDragOver ? 'text-green-500' : 'text-gray-400'
+                    }`} />
+
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    {isDragOver ? 'Drop files here' : 'Drag and drop files here'}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mb-4">
+                    Supported formats: PNG, JPG, GIF, PDF
+                  </p>
+
+                  <div className="flex items-center gap-4 w-full">
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <span className="text-sm text-gray-500">OR</span>
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Browse Button */}
+              <div className="mt-4">
+                <button
+                  onClick={handleBrowseClick}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                >
+                  <FolderOpen size={20} />
+                  Browse Files
+                </button>
+              </div>
+
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+
+              {/* Help Text */}
+              <div className="mt-4 text-xs text-gray-500">
+                <p>• You can select multiple files at once</p>
+                <p>• Maximum file size: 10MB per file</p>
+                <p>• Supported formats: PNG, JPG, GIF, PDF</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        :
+        <div className="bg-gray-500 flex flex-1 pt-2 justify-center w-full">
+          <div className='flex flex-col w-1/2 gap-1'>
+            <div className='flex justify-end'>
+              <button
+                onClick={handleExtractText}
+                disabled={isExtracting || !currentFile}
+                className='bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed px-6 py-2 rounded text-white font-medium transition-colors'
+              >
+                {isExtracting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Extracting...
+                  </div>
+                ) : (
+                  'Extract Text'
+                )}
+              </button>
+            </div>
+            <ContentPanel
+              title="Extracted Text"
+              onCopy={extractedText ? () => handleCopyText(extractedText, 'Extracted Text') : undefined}
+            >
+              <div className="text-gray-300">
+                {isExtracting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Extracting text...</span>
+                  </div>
+                ) : extractionError ? (
+                  <div className="text-red-400">
+                    Error: {extractionError}
+                  </div>
+                ) : extractedText ? (
+                  extractedText
+                ) : (
+                  'Upload and select a document, then click "Extract Text" to extract text...'
+                )}
+              </div>
+            </ContentPanel>
+          </div>
+
+          <div className='flex flex-col w-1/2 gap-1'>
+            <div className='flex justify-end gap-4'>
+              <SummaryToggle
+                length={summaryLength}
+                onChange={setSummaryLength}
+              />
+              <SummarizeButton
+                onClick={handleSummarize}
+                disabled={!extractedText.trim() || isSummarizing || !currentFile}
+              />
+            </div>
+            <ContentPanel
+              title="Summary"
+              onCopy={summary ? () => handleCopyText(summary, 'Summary') : undefined}
+            >
+              <div className="text-gray-300">
+                {isSummarizing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Generating summary...</span>
+                  </div>
+                ) : summaryError ? (
+                  <div className="text-red-400">
+                    Error: {summaryError}
+                  </div>
+                ) : summary ? (
+                  summary
+                ) : (
+                  'Extract text first, then click "Summarize!" to generate a summary...'
+                )}
+              </div>
+            </ContentPanel>
+          </div>
+        </div>
+      }
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={handleCloseUploadModal}
+        onFileSelect={handleFilesSelected}
+      />
+    </div>
+  );
+};
+
+export default Home;
