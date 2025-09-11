@@ -6,6 +6,7 @@ import { fromBuffer } from "pdf2pic";
  * Accepts req.file (multer memoryStorage)
  */
 export async function extractTextOCR(req, res) {
+    console.log("Hello")
     try {
         if (!req.file) {
             return res.status(400).json({ error: "No file uploaded." });

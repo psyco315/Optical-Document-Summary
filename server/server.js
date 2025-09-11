@@ -14,6 +14,13 @@ import summaryRouter from './routes/summ.js';
 const app = express();
 const PORT = process.env.PORT || 3000
 
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    console.log('Origin:', req.get('Origin'));
+    console.log('Headers:', req.headers);
+    next();
+});
+
 // Middlewares
 app.use(cors({
     origin: ['http://localhost:5173', 'https://optical-document-summary-client.vercel.app'],
