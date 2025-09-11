@@ -11,6 +11,8 @@ export async function extractTextOCR(req, res) {
             return res.status(400).json({ error: "No file uploaded." });
         }
 
+        console.log("OCR function called")
+
         const { buffer, mimetype } = req.file;
 
         // Helper: run Tesseract OCR on a buffer
@@ -21,6 +23,7 @@ export async function extractTextOCR(req, res) {
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
 
+            console.log("Running OCR")
             const { data: { text } } = await worker.recognize(base64);
             // console.log(text);
 
