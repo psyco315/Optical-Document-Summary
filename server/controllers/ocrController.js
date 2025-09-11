@@ -1,5 +1,8 @@
 import { createWorker } from "tesseract.js";
 import { fromBuffer } from "pdf2pic";
+import { ensureTesseractTestFile } from "../helper.js";
+
+ensureTesseractTestFile()
 
 /**
  * extractTextOCR

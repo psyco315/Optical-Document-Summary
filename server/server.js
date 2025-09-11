@@ -10,6 +10,7 @@ dotenv.config();
 import pdfRouter from './routes/pdfRoutes.js';
 import ocrRouter from './routes/ocrRoutes.js';
 import summaryRouter from './routes/summ.js';
+import { ensureTesseractTestFile } from './helper.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

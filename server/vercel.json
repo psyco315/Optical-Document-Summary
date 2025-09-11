@@ -15,10 +15,5 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ],
-  "functions": {
-    "server/index.js": {
-      "includeFiles": "test/data/**"
-    }
-  }
+  ]
 }
