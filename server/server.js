@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000
 
 // Middlewares
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://booklog-client.vercel.app'],
+    origin: ['http://localhost:5173', 'https://optical-document-summary-server.vercel.app/'],
     credentials: true
 }));
 app.use(bodyParser.json());
