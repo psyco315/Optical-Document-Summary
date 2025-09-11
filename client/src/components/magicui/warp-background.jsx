@@ -67,7 +67,7 @@ export const WarpBackground = ({
   const leftBeams = useMemo(() => generateBeams(), [generateBeams]);
 
   return (
-    <div className={cn(`h-[${height}dvh] w-dvw relative rounded flex justify-center items-center p-20`, className)} {...props}>
+    <div className={cn(`h-[90dvh] w-dvw relative rounded flex justify-center items-center p-20`, className)} {...props}>
       <div
         style={
           {
