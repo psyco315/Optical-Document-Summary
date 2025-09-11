@@ -161,6 +161,7 @@ const Home = () => {
 
   const extractWithPDF = async (file) => {
     try {
+      console.log("Trying with pdf")
       const formData = new FormData();
       formData.append('pdf', file); // Change to 'pdf' to match your multer config
 
@@ -187,6 +188,7 @@ const Home = () => {
 
   const extractWithOCR = async (file) => {
     try {
+      console.log("Trying with ocr")
       const formData = new FormData();
       formData.append('pdf', file); // Using 'pdf' key as specified
 
@@ -201,11 +203,11 @@ const Home = () => {
         setExtractedText(data.text);
         console.log("Used ocr")
       } else {
-        setExtractionError(data.error || 'Failed to fetch data for this file');
+        setExtractionError(data.error || 'OCR failed to fetch data for this file');
       }
     } catch (error) {
       console.error('OCR extraction error:', error);
-      setExtractionError('Failed to fetch data for this file');
+      setExtractionError('OCR failed to fetch data for this file');
     }
   };
 
