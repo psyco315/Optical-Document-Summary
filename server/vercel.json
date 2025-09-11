@@ -5,7 +5,11 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": "test/data/**",
+        "includeFiles": [
+          "test/**",
+          "test/data/**",
+          "test/data/05-versions-space.pdf"
+        ],
         "memory": 1024
       }
     }
