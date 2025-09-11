@@ -178,6 +178,7 @@ const Home = () => {
 
       if (data.success && data.text && data.text.trim()) {
         setExtractedText(data.text);
+        console.log("Used pdf")
         return true; // Success
       } else {
         console.log('PDF extraction returned no text or failed');
@@ -203,6 +204,7 @@ const Home = () => {
 
       if (response.ok && data.text) {
         setExtractedText(data.text);
+        console.log("Used ocr")
       } else {
         setExtractionError(data.error || 'Failed to fetch data for this file');
       }

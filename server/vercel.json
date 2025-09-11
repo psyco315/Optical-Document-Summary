@@ -3,15 +3,7 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "test/**",
-          "test/data/**",
-          "test/data/05-versions-space.pdf"
-        ],
-        "memory": 1024
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
