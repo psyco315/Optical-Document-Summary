@@ -154,16 +154,21 @@ const Home = () => {
     // Check if we're in development (localhost) or production
     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-    // Try to get environment variable, fallback based on environment
-    const envBackendUrl = typeof process !== 'undefined' && process.env ? process.env.REACT_APP_BACKEND_URL : null;
+    // Try to get environment variable first
+    const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
 
     if (envBackendUrl) {
       return envBackendUrl;
     }
 
-    return isDevelopment ? 'http://localhost:3000' : window.location.origin;
+    // Fallback logic
+    if (isDevelopment) {
+      return 'http://localhost:3000'; // Your local backend
+    } else {
+      // Replace with your actual production backend URL
+      return 'https://your-backend-api.vercel.app'; // Your production backend
+    }
   };
-
   const extractWithPDF = async (file) => {
     try {
       const formData = new FormData();
