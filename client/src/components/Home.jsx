@@ -166,7 +166,7 @@ const Home = () => {
       return 'http://localhost:3000'; // Your local backend
     } else {
       // Replace with your actual production backend URL
-      return 'https://your-backend-api.vercel.app'; // Your production backend
+      return 'https://optical-document-summary-server.vercel.app/'; // Your production backend
     }
   };
   const extractWithPDF = async (file) => {
